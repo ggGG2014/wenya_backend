@@ -46,6 +46,10 @@ class AIService:
         self.model = model or current_app.config.get('AI_MODEL') or None
         self.max_tokens = current_app.config.get('AI_MAX_TOKENS', 2000)
         self.temperature = current_app.config.get('AI_TEMPERATURE', 0.7)
+        self.extra_body = {}
+        if self.provider == 'aliyun' and not current_app.config.get('AI_ENABLE_THINKING', False):
+            # 通义千问默认可能开启思考模式；关闭可显著降低时延
+            self.extra_body['enable_thinking'] = False
         
         # 初始化 API 客户端（支持多模型）
         self.api_client = APIClient(
@@ -177,7 +181,8 @@ class AIService:
             result = self.api_client.chat(
                 messages=messages,
                 temperature=self.temperature,
-                max_tokens=self.max_tokens
+                max_tokens=self.max_tokens,
+                extra_body=self.extra_body
             )
             response = result['content']
             cached = result.get('cached', False)

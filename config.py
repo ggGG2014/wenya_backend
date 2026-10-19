@@ -54,6 +54,8 @@ class Config:
     AI_MODEL = os.environ.get('AI_MODEL', '')
     AI_MAX_TOKENS = _env_int('AI_MAX_TOKENS', 2000)
     AI_TEMPERATURE = _env_float('AI_TEMPERATURE', 0.7)
+    # 通义千问 Qwen3 思考模式（默认关闭以提升速度）
+    AI_ENABLE_THINKING = _env_bool('AI_ENABLE_THINKING', False)
     AI_ENABLE_MEMORY = _env_bool('AI_ENABLE_MEMORY', True)
     AI_ENABLE_CACHE = _env_bool('AI_ENABLE_CACHE', True)
     # 模拟模式（仅开发测试）：AI 不可用时返回带【模拟】标记的结果，而不是报错
