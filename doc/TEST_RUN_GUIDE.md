@@ -10,7 +10,6 @@
 - 操作系统：Windows（本项目当前目录结构为 Windows 环境）
 - Python：建议 3.11（项目内已有 `.venv`）
 - 当前工作目录：项目根目录  
-  `c:\works\culiu\PBL-zz\wenya\wenya_backend`
 
 ---
 
