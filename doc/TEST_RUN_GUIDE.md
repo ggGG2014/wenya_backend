@@ -53,7 +53,8 @@ python -m pip install -r requirements.txt
 优先使用测试配置文件（高于系统环境变量）：
 
 - 配置文件路径：`tests\test_ai.env`
-- 已提供模板（可直接编辑该文件）
+- 已提供模板（tests\test_ai.env.example）
+- 将tests\test_ai.env.example复制成tests\test_ai.env，并修改配置值
 - 读取优先级：`tests\test_ai.env` > 系统环境变量
 
 如果你不使用 `tests\test_ai.env`，也可以在 PowerShell 中设置：
