@@ -1,8 +1,13 @@
 """
 文芽 - 排行榜模型
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app import db
+
+
+def _utc_now():
+    """返回当前 UTC 时间（时区感知）"""
+    return datetime.now(timezone.utc)
 
 
 class RankingRecord(db.Model):
@@ -38,10 +43,10 @@ class RankingRecord(db.Model):
     # 状态
     is_active = db.Column(db.Boolean, default=True)
     is_hidden = db.Column(db.Boolean, default=False)  # 是否隐藏（用户退出排行或分数过低）
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
     
     def to_dict(self):
         return {
@@ -81,10 +86,10 @@ class RankingHistory(db.Model):
     
     # 时间维度
     recorded_date = db.Column(db.Date, nullable=False, index=True)  # 按日期聚合
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now)
+
     def to_dict(self):
         return {
             'data_type': self.data_type,

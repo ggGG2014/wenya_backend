@@ -1,13 +1,18 @@
 """
 文芽 - 合规模型
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app import db
+
+
+def _utc_now():
+    """返回当前 UTC 时间（时区感知）"""
+    return datetime.now(timezone.utc)
 
 
 def _default_expires_at():
     """合规日志默认过期时间：6 个月后"""
-    return datetime.utcnow() + timedelta(days=180)
+    return _utc_now() + timedelta(days=180)
 
 
 class ComplianceLog(db.Model):
@@ -50,7 +55,7 @@ class ComplianceLog(db.Model):
     user_agent = db.Column(db.String(255), nullable=True)
     
     # 时间戳（用于 6 个月保存期限计算）
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_at = db.Column(db.DateTime, default=_utc_now, index=True)
     expires_at = db.Column(db.DateTime, default=_default_expires_at, index=True)  # 过期时间（默认 6 个月）
     
     # 索引
@@ -116,10 +121,10 @@ class AlgorithmLog(db.Model):
     is_human_reviewed = db.Column(db.Boolean, default=False)
     human_reviewer = db.Column(db.String(64), nullable=True)
     human_review_result = db.Column(db.String(32), nullable=True)
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now, index=True)
+
     # 索引（便于审计查询）
     __table_args__ = (
         db.Index('idx_algorithm_type_created', 'algorithm_type', 'created_at'),

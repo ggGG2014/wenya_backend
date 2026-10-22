@@ -15,7 +15,7 @@ import json
 import logging
 import random
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 from .api_client import APIClient, APIClientError
@@ -365,7 +365,7 @@ def update_profile_after_scoring(user) -> None:
 
     # 连续写作天数：以今天或昨天为终点，向前数有提交记录的连续日期
     days = {(w.submitted_at + LOCAL_TZ_OFFSET).date() for w in scored if w.submitted_at}
-    today = (datetime.utcnow() + LOCAL_TZ_OFFSET).date()
+    today = (datetime.now(timezone.utc) + LOCAL_TZ_OFFSET).date()
     cursor = today if today in days else today - timedelta(days=1)
     streak = 0
     while cursor in days:

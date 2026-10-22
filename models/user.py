@@ -1,10 +1,15 @@
 """
 文芽 - 用户模型
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
+
+
+def _utc_now():
+    """返回当前 UTC 时间（时区感知）"""
+    return datetime.now(timezone.utc)
 
 
 class User(UserMixin, db.Model):
@@ -36,8 +41,8 @@ class User(UserMixin, db.Model):
     is_deleted = db.Column(db.Boolean, default=False)
     
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
     last_login_at = db.Column(db.DateTime, nullable=True)
     
     # 关联
@@ -114,9 +119,9 @@ class Guardian(db.Model):
     consent_expires_at = db.Column(db.DateTime, nullable=True)  # 年满 14 周岁后 3 年
     
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -160,9 +165,9 @@ class UserProfile(db.Model):
     })
     
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
+
     def to_dict(self):
         return {
             'strength_tags': self.strength_tags,

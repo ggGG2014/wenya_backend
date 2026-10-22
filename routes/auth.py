@@ -4,7 +4,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 import string
 
@@ -35,7 +35,7 @@ def generate_verification_code(length=6):
 
 def cleanup_expired_codes():
     """清理过期验证码"""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expired_keys = [k for k, v in verification_codes.items() if v['expires_at'] < now]
     for k in expired_keys:
         del verification_codes[k]
@@ -99,7 +99,7 @@ def register():
     if not stored:
         return error_response('验证码未发送或已过期，请重新获取', status_code=400)
 
-    if stored['expires_at'] < datetime.utcnow():
+    if stored['expires_at'] < datetime.now(timezone.utc):
         del verification_codes[guardian_key]
         return error_response('验证码已过期，请重新获取', status_code=400)
 
@@ -112,10 +112,10 @@ def register():
         phone=guardian_phone,
         relationship=guardian_relationship,
         is_verified=True,
-        verified_at=datetime.utcnow(),
+        verified_at=datetime.now(timezone.utc),
         verification_method='sms',
-        consent_given_at=datetime.utcnow(),
-        consent_expires_at=datetime.utcnow() + timedelta(days=365 * 3)
+        consent_given_at=datetime.now(timezone.utc),
+        consent_expires_at=datetime.now(timezone.utc) + timedelta(days=365 * 3)
     )
     db.session.add(guardian)
     db.session.flush()
@@ -180,7 +180,7 @@ def login():
     if not user.is_active:
         return error_response('账号已被停用', status_code=403)
 
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = datetime.now(timezone.utc)
     db.session.commit()
 
     login_user(user, remember=bool(data.get('remember', False)))
@@ -314,7 +314,7 @@ def export_data():
         'user': current_user.to_dict(),
         'profile': profile.to_dict() if profile else None,
         'writings': [w.to_dict(include_content=True, include_scores=True) for w in writings],
-        'exported_at': datetime.utcnow().isoformat()
+        'exported_at': datetime.now(timezone.utc).isoformat()
     }
 
     compliance_log = ComplianceLog(
@@ -350,7 +350,7 @@ def send_guardian_code():
 
     verification_codes[f"guardian:{phone}"] = {
         'code': code,
-        'expires_at': datetime.utcnow() + timedelta(minutes=CODE_EXPIRE_MINUTES)
+        'expires_at': datetime.now(timezone.utc) + timedelta(minutes=CODE_EXPIRE_MINUTES)
     }
 
     current_app.logger.info(f"监护人验证码 [{phone}]: {code}")

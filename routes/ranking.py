@@ -4,7 +4,7 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app import db
 from models.ranking import RankingRecord, RankingHistory
@@ -100,7 +100,7 @@ def get_progress_ranking():
     if not grade:
         return error_response('请先设置年级', status_code=400)
 
-    end_date = datetime.utcnow()
+    end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days)
 
     users = User.query.filter(
@@ -232,7 +232,7 @@ def get_growth_curve():
     """获取个人成长曲线（私密）"""
     days = request.args.get('days', 90, type=int)
 
-    end_date = datetime.utcnow().date()
+    end_date = datetime.now(timezone.utc).date()
     start_date = end_date - timedelta(days=days)
 
     histories = RankingHistory.query.filter(

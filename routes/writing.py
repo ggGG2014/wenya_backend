@@ -3,7 +3,7 @@
 """
 from flask import Blueprint, request, current_app
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app import db, limiter
 from models.writing import Writing, WritingDraft, WritingScore
@@ -158,7 +158,7 @@ def update_writing(writing_id):
         )
         db.session.add(draft)
 
-    writing.updated_at = datetime.utcnow()
+    writing.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
     return success_response({'writing': writing.to_dict()}, message='更新成功')
@@ -173,7 +173,7 @@ def delete_writing(writing_id):
         return error_response('作文不存在', status_code=404)
 
     writing.is_deleted = True
-    writing.deleted_at = datetime.utcnow()
+    writing.deleted_at = datetime.now(timezone.utc)
     db.session.commit()
 
     compliance_log = ComplianceLog(
@@ -234,7 +234,7 @@ def submit_writing(writing_id):
     writing.status = 'submitted'
     writing.is_scored = True
     writing.overall_score = score.calculate_overall()
-    writing.submitted_at = datetime.utcnow()
+    writing.submitted_at = datetime.now(timezone.utc)
 
     # 评分后更新写作画像与 AI 记忆
     update_profile_after_scoring(current_user)
@@ -323,7 +323,7 @@ def save_draft(writing_id):
 
     writing.content = content
     writing.word_count = word_count
-    writing.updated_at = datetime.utcnow()
+    writing.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
     return success_response({'version': version, 'writing': writing.to_dict(include_content=False)},
@@ -431,8 +431,8 @@ def ai_chat(writing_id):
         writing_id=writing_id,
         session_type=session_type,
         messages=[
-            {'role': 'user', 'content': message, 'timestamp': datetime.utcnow().isoformat()},
-            {'role': 'assistant', 'content': ai_response['content'], 'timestamp': datetime.utcnow().isoformat()}
+            {'role': 'user', 'content': message, 'timestamp': datetime.now(timezone.utc).isoformat()},
+            {'role': 'assistant', 'content': ai_response['content'], 'timestamp': datetime.now(timezone.utc).isoformat()}
         ],
         summary=ai_response.get('summary', ''),
         key_points=ai_response.get('key_points', [])
@@ -440,7 +440,7 @@ def ai_chat(writing_id):
     db.session.add(conversation)
     db.session.flush()  # 生成 conversation.id，供合规日志引用
 
-    ai_memory.last_interaction_at = datetime.utcnow()
+    ai_memory.last_interaction_at = datetime.now(timezone.utc)
     ai_memory.total_interactions += 1
 
     compliance_log = ComplianceLog(
