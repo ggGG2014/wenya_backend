@@ -3,7 +3,7 @@
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app import db, limiter
 from models.community import CommunityWork, WorkLike, WorkComment, WorkReport
@@ -256,7 +256,7 @@ def delete_comment(work_id, comment_id):
         return error_response('无权删除该评论', status_code=403)
 
     comment.is_deleted = True
-    comment.deleted_at = datetime.utcnow()
+    comment.deleted_at = datetime.now(timezone.utc)
 
     work = CommunityWork.query.filter_by(id=work_id).first()
     if work:
@@ -383,7 +383,7 @@ def publish_work(writing_id):
 
     # 自动审核：内容安全检查已通过时直接公开（COMMUNITY_AUTO_APPROVE，默认关闭，需人工审核）
     auto_approve = current_app.config.get('COMMUNITY_AUTO_APPROVE', False)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     work = CommunityWork(
         writing_id=writing_id,

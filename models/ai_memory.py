@@ -1,8 +1,13 @@
 """
 文芽 - AI 记忆模型（三层记忆架构）
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
+
+
+def _utc_now():
+    """返回当前 UTC 时间（时区感知）"""
+    return datetime.now(timezone.utc)
 
 
 class AIMemory(db.Model):
@@ -42,11 +47,11 @@ class AIMemory(db.Model):
     last_interaction_at = db.Column(db.DateTime, nullable=True)
     total_interactions = db.Column(db.Integer, default=0)
     memory_version = db.Column(db.String(32), default='v1.0')
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
+
     # 关联
     conversations = db.relationship('AIConversation', backref='memory', lazy='dynamic', cascade='all, delete-orphan')
     
@@ -95,11 +100,11 @@ class AIConversation(db.Model):
     
     # 状态
     is_completed = db.Column(db.Boolean, default=False)
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now)
     completed_at = db.Column(db.DateTime, nullable=True)
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -132,15 +137,20 @@ class MemoryFragment(db.Model):
     meta = db.Column('metadata', db.JSON, default=dict)
     access_count = db.Column(db.Integer, default=0)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    accessed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now, index=True)
+    accessed_at = db.Column(db.DateTime, default=_utc_now)
 
     DECAY_FACTOR = 0.95  # 每天衰减
 
     def effective_importance(self, now=None):
         """按天数衰减后的重要性"""
-        now = now or datetime.utcnow()
-        days_old = max(0, (now - (self.created_at or now)).days)
+        now = now or datetime.now(timezone.utc)
+        created = self.created_at or now
+        # 处理时区感知和未时区感知的 datetime 对象
+        if created.tzinfo is None:
+            # created_at 是未时区感知的，将其视为 UTC
+            created = created.replace(tzinfo=timezone.utc)
+        days_old = max(0, (now - created).days)
         return (self.importance or 0.0) * (self.DECAY_FACTOR ** days_old)
 
     def to_dict(self):

@@ -1,8 +1,13 @@
 """
 文芽 - 写作模型
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
+
+
+def _utc_now():
+    """返回当前 UTC 时间（时区感知）"""
+    return datetime.now(timezone.utc)
 
 
 class Writing(db.Model):
@@ -35,8 +40,8 @@ class Writing(db.Model):
     reviewed_by = db.Column(db.String(64), nullable=True)  # 审核人/AI
     
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now, index=True)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
     submitted_at = db.Column(db.DateTime, nullable=True, index=True)
     published_at = db.Column(db.DateTime, nullable=True)
     
@@ -93,10 +98,10 @@ class WritingDraft(db.Model):
     
     # 版本
     version = db.Column(db.Integer, default=1)
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now)
+
     def __repr__(self):
         return f'<WritingDraft {self.writing_id} v{self.version}>'
 
@@ -104,7 +109,7 @@ class WritingDraft(db.Model):
 class WritingScore(db.Model):
     """作文评分表 - 七维度评分体系"""
     __tablename__ = 'writing_scores'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     writing_id = db.Column(db.Integer, db.ForeignKey('writings.id'), unique=True, nullable=False)
     
@@ -127,10 +132,10 @@ class WritingScore(db.Model):
     # 评分可信度
     confidence = db.Column(db.Float, default=0.0)  # AI 评分置信度 0-1
     needs_human_review = db.Column(db.Boolean, default=False)  # 是否需要人工复审
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utc_now)
+
     def calculate_overall(self):
         """计算总分"""
         scores = [

@@ -1,8 +1,13 @@
 """
 文芽 - 社区模型
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
+
+
+def _utc_now():
+    """返回当前 UTC 时间（时区感知）"""
+    return datetime.now(timezone.utc)
 
 
 class CommunityWork(db.Model):
@@ -51,11 +56,11 @@ class CommunityWork(db.Model):
     # 状态
     is_featured = db.Column(db.Boolean, default=False)  # 是否精选
     is_deleted = db.Column(db.Boolean, default=False)
-    
+
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now)
     published_at = db.Column(db.DateTime, nullable=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
     
     # 关联
     likes = db.relationship('WorkLike', backref='work', lazy='dynamic', cascade='all, delete-orphan')
@@ -103,9 +108,9 @@ class WorkLike(db.Model):
     __table_args__ = (
         db.UniqueConstraint('work_id', 'user_id', name='unique_work_user_like'),
     )
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    created_at = db.Column(db.DateTime, default=_utc_now)
+
     def __repr__(self):
         return f'<WorkLike work_{self.work_id} user_{self.user_id}>'
 
@@ -126,8 +131,8 @@ class WorkComment(db.Model):
     is_deleted = db.Column(db.Boolean, default=False)
 
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now)
+    updated_at = db.Column(db.DateTime, default=_utc_now, onupdate=_utc_now)
 
     # 关联
     replies = db.relationship('WorkComment', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
@@ -177,7 +182,7 @@ class WorkReport(db.Model):
     reviewed_by = db.Column(db.String(64), nullable=True)  # 审核人
 
     # 时间戳
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now)
 
     # 关联
     work = db.relationship('CommunityWork', backref=db.backref('reports', lazy='dynamic'))

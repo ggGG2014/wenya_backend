@@ -7,7 +7,7 @@ pytest 公共夹具（真实 AI 版本）
 """
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from dotenv import dotenv_values
@@ -142,7 +142,7 @@ def make_user():
             phone=f'1390000{counter["n"]:04d}',
             relationship='parent',
             is_verified=True,
-            consent_given_at=datetime.utcnow()
+            consent_given_at=datetime.now(timezone.utc)
         )
         db.session.add(guardian)
         db.session.flush()

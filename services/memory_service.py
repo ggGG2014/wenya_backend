@@ -13,7 +13,7 @@ import logging
 import uuid
 from collections import Counter
 from typing import Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from models.ai_memory import MemoryFragment
 
@@ -152,8 +152,8 @@ class MemoryService:
             importance=importance,
             meta=metadata or {},
             access_count=0,
-            created_at=datetime.utcnow(),
-            accessed_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc),
+            accessed_at=datetime.now(timezone.utc)
         )
 
         # 生成向量表示（如果启用）
@@ -178,7 +178,7 @@ class MemoryService:
         if count <= self.max_fragments_per_user:
             return
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         fragments = self._user_query(user_id).all()
         fragments.sort(key=lambda f: (f.effective_importance(now), f.created_at), reverse=True)
         removed = fragments[self.max_fragments_per_user:]
@@ -205,7 +205,7 @@ class MemoryService:
         Returns:
             List[MemoryFragment]: 相关记忆片段
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         candidates = [
             f for f in self._user_query(user_id, category)
                           .order_by(MemoryFragment.created_at.desc())
@@ -228,7 +228,7 @@ class MemoryService:
 
     def _rank_by_relevance(self, fragments: List[MemoryFragment], query: str) -> List[tuple]:
         """返回 [(相关度, 片段)]，按相关度、重要性、时间降序"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         scores = None
 
         if self.vector_store_enabled and self.encoder:
@@ -289,7 +289,7 @@ class MemoryService:
         Returns:
             Dict: 聚合摘要
         """
-        cutoff_date = datetime.utcnow() - timedelta(days=time_range_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=time_range_days)
         fragments = self._user_query(user_id, category)\
             .filter(MemoryFragment.created_at >= cutoff_date).all()
 

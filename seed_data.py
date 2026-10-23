@@ -20,7 +20,7 @@
 示例数据中的评分与评语均为手工构造，ai_comment 以【示例数据】开头，并非真实 AI 评分。
 """
 import random
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 
 from app import create_app, db
 from models.user import User, Guardian, UserProfile
@@ -183,9 +183,9 @@ def get_or_create_user(app, spec):
     if not guardian:
         guardian = Guardian(
             name=g_name, phone=g_phone, relationship=relation,
-            is_verified=True, verified_at=datetime.utcnow(), verification_method='sms',
-            consent_given_at=datetime.utcnow(),
-            consent_expires_at=datetime.utcnow() + timedelta(days=365 * 3)
+            is_verified=True, verified_at=datetime.now(timezone.utc), verification_method='sms',
+            consent_given_at=datetime.now(timezone.utc),
+            consent_expires_at=datetime.now(timezone.utc) + timedelta(days=365 * 3)
         )
         db.session.add(guardian)
         db.session.flush()
@@ -216,7 +216,7 @@ def seed_writings(user, spec):
     essays = ESSAY_PLAN[username]
     stage = stage_of(grade)
     weights = STAGE_WEIGHTS[stage]
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     created = []
 
     for i, (title, prompt, content, genre) in enumerate(essays):

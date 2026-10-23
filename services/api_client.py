@@ -8,7 +8,7 @@ import hashlib
 import logging
 import threading
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 
 import requests
@@ -36,11 +36,11 @@ class CacheEntry:
     def __init__(self, key: str, value: Any, ttl: int):
         self.key = key
         self.value = value
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(timezone.utc)
         self.ttl = ttl  # 秒
 
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.created_at + timedelta(seconds=self.ttl)
+        return datetime.now(timezone.utc) > self.created_at + timedelta(seconds=self.ttl)
 
 
 class APIClient:
